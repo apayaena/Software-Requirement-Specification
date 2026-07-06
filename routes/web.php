@@ -36,6 +36,9 @@ Route::get('/dashboard', function () {
     return redirect()->route('login');
 })->name('dashboard');
 
+Route::get('/api/areas', [\App\Http\Controllers\AreaController::class, 'index'])->name('api.areas');
+Route::get('/api/assets', [\App\Http\Controllers\AssetController::class, 'index'])->name('api.assets');
+
 Route::post('/login', function (Request $request) {
     $credentials = $request->validate([
         'email' => ['required', 'email'],
@@ -63,5 +66,6 @@ Route::post('/logout', function (Request $request) {
 
 Route::get('/export/excel', [IncidentController::class, 'exportExcel'])->name('export.excel');
 Route::get('/export/pdf', [IncidentController::class, 'exportPdf'])->name('export.pdf');
+Route::get('/export/csv', [IncidentController::class, 'exportCSV'])->name('export.csv');
 
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');

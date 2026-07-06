@@ -14,6 +14,8 @@ use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\IncidentMonthlyExport;
+use League\Csv\Writer;
+use Illuminate\Support\Facades\Response;
 
 class IncidentController extends Controller
 {
@@ -98,6 +100,14 @@ class IncidentController extends Controller
             foreach ($hseOfficers as $officer) {
                 if ($officer->phone_number) {
                     $this->whatsAppService->sendNotification($officer->phone_number, $message);
+                }
+            }
+
+            if (in_array($result->category, ['Accident', 'High Risk'])) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to('hse.officer@safemine.com')->send(new \App\Mail\HighRiskIncidentNotification($result));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error("Failed to send notification email: " . $e->getMessage());
                 }
             }
 
@@ -389,6 +399,37 @@ class IncidentController extends Controller
     /**
      * Export incidents to Excel for a specific month and year.
      */
+    public function exportCSV(Request $request)
+    {
+        $incidents = Incident::with(['reporter', 'location', 'area', 'asset'])->get();
+        $csv = Writer::createFromString('');
+
+        $csv->insertOne([
+            'Ticket Number', 'Date', 'Reporter', 'Category', 'Severity', 'Status', 'Location', 'Area', 'Asset'
+        ]);
+
+        foreach ($incidents as $incident) {
+            $csv->insertOne([
+                $incident->ticket_number,
+                $incident->incident_date->format('Y-m-d'),
+                $incident->reporter->name ?? 'N/A',
+                $incident->category,
+                $incident->severity,
+                $incident->status,
+                $incident->location->name ?? 'N/A',
+                $incident->area->name ?? 'N/A',
+                $incident->asset->name ?? 'N/A'
+            ]);
+        }
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="incidents_export.csv"',
+        ];
+
+        return Response::make($csv->toString(), 200, $headers);
+    }
+
     public function exportExcel(Request $request)
     {
         $month = (int) $request->query('month', Carbon::now()->month);

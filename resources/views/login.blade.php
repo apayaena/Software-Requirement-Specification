@@ -203,7 +203,21 @@
             margin-bottom: 1rem;
             display: none;
         }
+
+        /* ==================== RESPONSIVE LAYOUT ADJUSTMENTS ==================== */
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 2rem 1.5rem;
+            }
+            .logo-title {
+                font-size: 1.25rem;
+            }
+            .logo-subtitle {
+                font-size: 0.75rem;
+            }
+        }
     </style>
+
 </head>
 <body>
     <div class="login-container">
@@ -227,33 +241,10 @@
             <button type="submit" class="btn-submit">Masuk Sistem</button>
         </form>
 
-        <div class="demo-section">
-            <div class="demo-title">Login Cepat Akun Demo (Simulasi)</div>
-            <div class="demo-grid">
-                <button type="button" class="btn-demo-role" onclick="quickLogin('pekerja.lapangan@safemine.com')">
-                    👷 Pekerja Lapangan (Pelapor)
-                    <span class="demo-badge">pekerja.lapangan@safemine.com</span>
-                </button>
-                <button type="button" class="btn-demo-role" onclick="quickLogin('officer.hse@safemine.com')">
-                    🛡️ HSE Officer / Supervisor
-                    <span class="demo-badge">officer.hse@safemine.com</span>
-                </button>
-                <button type="button" class="btn-demo-role" onclick="quickLogin('manager.hse@safemine.com')">
-                    💼 HSE Manager
-                    <span class="demo-badge">manager.hse@safemine.com</span>
-                </button>
-            </div>
         </div>
-    </div>
 
     <script>
-        const quickLogin = (email) => {
-            document.getElementById('email').value = email;
-            document.getElementById('password').value = 'password123';
-            document.getElementById('login-form').dispatchEvent(new Event('submit'));
-        };
-
-        document.getElementById('login-form').addEventListener('submit', (e) => {
+                document.getElementById('login-form').addEventListener('submit', (e) => {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;

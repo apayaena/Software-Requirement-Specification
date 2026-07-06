@@ -13,6 +13,8 @@ class Incident extends Model
         'ticket_number',
         'reporter_id',
         'location_id',
+        'area_id',
+        'asset_id',
         'category',
         'status',
         'severity',
@@ -31,6 +33,16 @@ class Incident extends Model
     public function location()
     {
         return $this->belongsTo(Location::class);
+    }
+
+    public function area()
+    {
+        return $this->belongsTo(Area::class);
+    }
+
+    public function asset()
+    {
+        return $this->belongsTo(Asset::class);
     }
 
     public function details()

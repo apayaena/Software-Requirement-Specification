@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafeMine HSE - K3 Incident Management System</title>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js');
+        });
+      }
+    </script>
     <!-- Google Fonts: Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -668,7 +676,53 @@
         .why-input {
             flex-grow: 1;
         }
+
+        /* ==================== RESPONSIVE LAYOUT ADJUSTMENTS ==================== */
+        @media (max-width: 1024px) {
+            .dashboard-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .ticket-list {
+                max-height: 400px;
+            }
+            .main-content {
+                height: auto;
+                min-height: 50vh;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+            }
+            .filter-row select {
+                width: 100%;
+            }
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+                padding: 1rem;
+            }
+            header > div:last-child {
+                flex-direction: column;
+                border-left: none;
+                padding-left: 0;
+                width: 100%;
+            }
+            header > div:last-child > div:first-child {
+                border-right: none;
+                padding-right: 0;
+                text-align: center;
+                margin-bottom: 0.5rem;
+            }
+        }
     </style>
+
 </head>
 <body>
     
@@ -748,7 +802,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Pilih Contoh Foto (Simulasi) ATAU Unggah Foto Lapangan Real</label>
+                                <label>Unggah Foto Bukti Lapangan</label>
                                 <div class="photo-picker" id="report-photo-picker" style="margin-bottom: 0.5rem;">
                                     <div class="photo-option selected" data-photo="uploads/incidents/before_road_landslide.jpg">
                                         <img src="https://images.unsplash.com/photo-1580901368919-7738efb4f072?w=150&auto=format&fit=crop&q=60" alt="Jalan longsor">
@@ -905,7 +959,7 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Pilih Contoh Foto (Simulasi) ATAU Unggah Foto Hasil Real</label>
+                                <label>Unggah Foto Bukti Lapangan</label>
                                 <div class="photo-picker" id="pic-photo-picker" style="margin-bottom: 0.5rem;">
                                     <div class="photo-option selected" data-photo="uploads/incidents/after_road_landslide.jpg">
                                         <img src="https://images.unsplash.com/photo-1590069261209-f8e9b8642343?w=150&auto=format&fit=crop&q=60" alt="Jalan selesai diperbaiki">
@@ -980,6 +1034,10 @@
                                     </select>
                                 </div>
                                 <div style="display: flex; gap: 0.5rem;">
+                                    <button onclick="triggerExport('csv')" class="btn" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; background: var(--color-warning); display: flex; align-items: center; gap: 0.25rem;">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                                        CSV
+                                    </button>
                                     <button onclick="triggerExport('pdf')" class="btn" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; background: var(--color-critical); display: flex; align-items: center; gap: 0.25rem;">
                                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                                         PDF
@@ -1090,28 +1148,21 @@
         let selectedIncidentId = null;
         let selectedTaskId = null;
         let allIncidents = [];
-        const loggedInEmail = "{{ auth()->user()->email }}";
-        let activeRole = 'pekerja';
-        if (loggedInEmail === 'manager.hse@safemine.com') activeRole = 'manager';
-        else if (loggedInEmail === 'officer.hse@safemine.com') activeRole = 'officer';
-        else activeRole = 'pekerja';
+        const loggedInRole = "{{ auth()->user()->role }}"; // "pekerja", "officer", "manager"
+        let activeRole = loggedInRole; // Maps 1:1 if needed, or adjust below
+
+        // For the sake of the existing demo UI logic that expects 5 phases:
+        // We will map 'officer' to handle both officer & supervisor tasks if needed,
+        // or just rely on the existing backend role logic for UI rendering.
+        // The prompt asks to ensure logical flow. Let's map exactly based on role.
 
         // Set AJAX Headers with CSRF Token and Simulated Role ID
         const getHeaders = () => {
             const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            let simulatedUserId = 1;
-            if (activeRole === 'pekerja') simulatedUserId = 3;
-            if (activeRole === 'officer') simulatedUserId = 2;
-            if (activeRole === 'supervisor') simulatedUserId = 2;
-            if (activeRole === 'pic') simulatedUserId = 3;
-            if (activeRole === 'manager') simulatedUserId = 1;
-
             return {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                'X-CSRF-TOKEN': token,
-                'X-Simulated-User-Id': simulatedUserId,
-                'X-Simulated-Role': activeRole
+                'X-CSRF-TOKEN': token
             };
         };
 
@@ -1120,12 +1171,7 @@
             loadDropdownData();
             loadIncidents();
 
-            // Set simulator dropdown value and trigger switch
-            const roleSel = document.getElementById('roleSelect');
-            if (roleSel) {
-                roleSel.value = activeRole;
-                switchRole(activeRole);
-            }
+            switchRole(activeRole);
 
             // Register PWA Service Worker
             if ('serviceWorker' in navigator) {
@@ -1609,29 +1655,60 @@
                 incident_date: new Date().toISOString().slice(0, 19).replace('T', ' ')
             };
 
-            fetch('/api/incidents', {
-                method: 'POST',
-                headers: getHeaders(),
-                body: JSON.stringify(data)
-            })
-            .then(res => res.json())
-            .then(res => {
-                if (res.errors) {
-                    showToast(Object.values(res.errors)[0][0], 'error');
-                } else {
-                    showToast('Laporan K3 berhasil dikirim ke HSE Officer!');
-                    document.getElementById('form-report').reset();
-                    document.getElementById('compressed-preview-container').style.display = 'none';
-                    document.getElementById('location-status').innerText = '📍 GPS: Koordinat area akan otomatis terdeteksi saat unggah foto.';
-                    window.uploadedPhotoDataUrl = null;
-                    window.capturedCoordinates = null;
-                    loadIncidents();
-                }
-            })
-            .catch(err => {
-                showToast('Gagal mengirimkan laporan K3', 'error');
-            });
+            if (!navigator.onLine) {
+                // Save offline
+                let offlineData = JSON.parse(localStorage.getItem('offline_incidents') || '[]');
+                offlineData.push(data);
+                localStorage.setItem('offline_incidents', JSON.stringify(offlineData));
+
+                showToast('Anda sedang offline. Laporan disimpan dan akan dikirim saat koneksi pulih.', 'warning');
+                document.getElementById('form-report').reset();
+                document.getElementById('compressed-preview-container').style.display = 'none';
+                window.uploadedPhotoDataUrl = null;
+            } else {
+                fetch('/api/incidents', {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify(data)
+                })
+                .then(res => res.json())
+                .then(res => {
+                    if (res.errors) {
+                        showToast(Object.values(res.errors)[0][0], 'error');
+                    } else {
+                        showToast('Laporan K3 berhasil dikirim ke HSE Officer!');
+                        document.getElementById('form-report').reset();
+                        document.getElementById('compressed-preview-container').style.display = 'none';
+                        document.getElementById('location-status').innerText = '📍 GPS: Koordinat area akan otomatis terdeteksi saat unggah foto.';
+                        window.uploadedPhotoDataUrl = null;
+                        window.capturedCoordinates = null;
+                        loadIncidents();
+                    }
+                })
+                .catch(err => {
+                    showToast('Gagal mengirimkan laporan K3', 'error');
+                });
+            }
         };
+
+        // Sync Offline Data
+        window.addEventListener('online', () => {
+            let offlineData = JSON.parse(localStorage.getItem('offline_incidents') || '[]');
+            if (offlineData.length > 0) {
+                showToast(`Menyinkronkan ${offlineData.length} laporan offline...`);
+                Promise.all(offlineData.map(data => {
+                    return fetch('/api/incidents', {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify(data)
+                    });
+                })).then(() => {
+                    localStorage.removeItem('offline_incidents');
+                    showToast('Sinkronisasi selesai!');
+                    loadIncidents();
+                });
+            }
+        });
 
         // Submit Phase 2: Classify (HSE Officer)
         const submitClassification = (e) => {
@@ -1836,10 +1913,8 @@
                         window.capturedCoordinates = { lat, lng };
                     },
                     (error) => {
-                        const lat = (-2.5 + (Math.random() * 0.1)).toFixed(6);
-                        const lng = (115.5 + (Math.random() * 0.1)).toFixed(6);
-                        locStatus.innerHTML = `📍 GPS Koordinat (Simulasi): <span style="font-family: monospace; font-weight: bold; color: var(--color-open);">${lat}, ${lng}</span>`;
-                        window.capturedCoordinates = { lat, lng };
+                        locStatus.innerHTML = `<span style="color: var(--color-critical);">📍 GPS Gagal (Pastikan izin lokasi diberikan)</span>`;
+                        window.capturedCoordinates = null;
                     }
                 );
             }

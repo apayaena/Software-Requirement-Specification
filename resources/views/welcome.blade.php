@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SafeMine-HSE - Sistem Pelaporan K3 Tambang</title>
+    <link rel="manifest" href="/manifest.json">
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/service-worker.js');
+        });
+      }
+    </script>
     <!-- Google Fonts: Outfit & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,22 +19,23 @@
     
     <style>
         :root {
-            --bg-main: #07080d;
-            --bg-card: #0f111a;
-            --bg-card-hover: #141724;
-            --border-color: rgba(255, 255, 255, 0.06);
-            --border-color-glow: rgba(255, 90, 31, 0.15);
-            --color-primary: #ff5a1f;
-            --color-primary-hover: #e04e17;
+            --bg-main: #1a1a1a;
+            --bg-card: #242424;
+            --bg-card-hover: #2f2f2f;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --border-color-glow: rgba(100, 108, 255, 0.15);
+            --color-primary: #646cff;
+            --color-primary-hover: #747bff;
             --color-success: #10b981;
             --color-warning: #f59e0b;
             --color-danger: #ef4444;
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
+            --text-primary: rgba(255, 255, 255, 0.87);
+            --text-secondary: rgba(255, 255, 255, 0.6);
             --font-outfit: 'Outfit', sans-serif;
             --font-inter: 'Inter', sans-serif;
-            --shadow-premium: 0 20px 40px rgba(0, 0, 0, 0.6);
-            --shadow-glow: 0 0 30px rgba(255, 90, 31, 0.1);
+            --shadow-premium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-glow: 0 0 30px rgba(100, 108, 255, 0.15);
+            --gradient-text: linear-gradient(315deg, #42d392 25%, #647eff);
         }
 
         * {
@@ -35,16 +44,18 @@
             padding: 0;
         }
 
+
+
         body {
             font-family: var(--font-inter);
             background-color: var(--bg-main);
-            background-image: 
-                radial-gradient(circle at 0% 0%, rgba(255, 90, 31, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 100% 100%, rgba(16, 185, 129, 0.03) 0%, transparent 40%);
             color: var(--text-primary);
             min-height: 100vh;
             line-height: 1.6;
             overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(100, 108, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(66, 211, 146, 0.08) 0%, transparent 50%);
         }
 
         /* Header Navigation */
@@ -146,20 +157,21 @@
             background: var(--color-primary);
             color: white;
             text-decoration: none;
-            padding: 0.6rem 1.5rem;
+            padding: 0.75rem 1.75rem;
             border-radius: 0.5rem;
-            font-size: 0.85rem;
+            font-size: 1rem;
             font-weight: 600;
             transition: all 0.2s;
             border: 1px solid transparent;
-            box-shadow: 0 4px 12px rgba(255, 90, 31, 0.25);
+            box-shadow: 0 4px 12px rgba(100, 108, 255, 0.25);
             font-family: var(--font-outfit);
+            display: inline-block;
         }
 
         .btn-cta:hover {
             background: var(--color-primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(255, 90, 31, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(100, 108, 255, 0.4);
         }
 
         /* Mobile Hamburger Menu Trigger */
@@ -205,12 +217,12 @@
 
         .hero-content h2 {
             font-family: var(--font-outfit);
-            font-size: 3.25rem;
+            font-size: 3.5rem;
             font-weight: 900;
-            line-height: 1.15;
-            letter-spacing: -0.03em;
+            line-height: 1.1;
+            letter-spacing: -0.04em;
             margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #ffffff 40%, #ff5a1f 100%);
+            background: var(--gradient-text);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -251,12 +263,18 @@
         .hero-image-frame {
             position: relative;
             border-radius: 1rem;
-            padding: 0.5rem;
-            background: linear-gradient(135deg, var(--border-color), rgba(255, 90, 31, 0.1));
-            border: 1px solid var(--border-color);
+            padding: 0.25rem;
+            background: linear-gradient(135deg, rgba(66, 211, 146, 0.5), rgba(100, 108, 255, 0.5));
             box-shadow: var(--shadow-premium), var(--shadow-glow);
             overflow: hidden;
             aspect-ratio: 4 / 3;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
         }
 
         .hero-image-frame img {
@@ -809,9 +827,9 @@
             }
 
             .hero-section {
-                grid-template-columns: 1fr;
-                gap: 3rem;
+                flex-direction: column;
                 text-align: center;
+                padding: 2rem 0;
             }
 
             .hero-content h2 {
@@ -819,37 +837,23 @@
             }
 
             .hero-content p {
-                margin-left: auto;
-                margin-right: auto;
+                margin: 0 auto 2rem auto;
             }
 
             .hero-actions {
                 justify-content: center;
             }
 
-            .hero-image-frame {
-                max-width: 500px;
-                margin: 0 auto;
+            .hero-actions .btn-cta,
+            .hero-actions .btn-secondary {
+                width: auto;
+                margin-top: 0;
             }
 
-            .commitment-section {
-                grid-template-columns: 1fr;
-                gap: 3rem;
-            }
-
-            .commitment-section .hero-image-frame {
-                order: -1;
-                max-width: 500px;
-                margin: 0 auto;
-            }
-
-            .features-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
+            .features-grid,
+            .dashboard-preview,
             .contact-section {
                 grid-template-columns: 1fr;
-                gap: 2.5rem;
             }
         }
 
