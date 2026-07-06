@@ -1268,8 +1268,50 @@
 
         const submitContactForm = (e) => {
             e.preventDefault();
-            alert('Terima kasih! Feedback Anda telah terkirim ke Departemen HSE dan akan segera ditinjau.');
-            document.getElementById('contact-form').reset();
+
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = 'Mengirim...';
+            btn.disabled = true;
+
+            const payload = {
+                name: document.getElementById('contact-name').value,
+                email: document.getElementById('contact-email').value,
+                subject: document.getElementById('contact-subject').value,
+                message: document.getElementById('contact-message').value
+            };
+
+            fetch('{{ route("contact.store") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+
+                if (data.errors) {
+                    let errStr = '';
+                    for (const key in data.errors) {
+                        errStr += data.errors[key][0] + '\n';
+                    }
+                    alert('Gagal mengirim pesan:\n' + errStr);
+                } else {
+                    alert(data.message || 'Terima kasih! Pesan Anda telah terkirim.');
+                    document.getElementById('contact-form').reset();
+                }
+            })
+            .catch(err => {
+                btn.innerText = originalText;
+                btn.disabled = false;
+                alert('Terjadi kesalahan saat mengirim pesan.');
+                console.error(err);
+            });
         };
     </script>
 </body>

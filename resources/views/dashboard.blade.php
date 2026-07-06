@@ -219,7 +219,7 @@
 
         /* Buttons & Forms styles */
         .form-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
@@ -227,12 +227,13 @@
             font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.6rem;
+            letter-spacing: 0.02em;
         }
 
         .form-control, select, textarea {
             width: 100%;
-            background: #1a1d29;
+            background: rgba(0, 0, 0, 0.25);
             border: 1px solid var(--border-color);
             color: var(--text-primary);
             padding: 0.75rem 1rem;
@@ -240,11 +241,13 @@
             font-family: var(--font-main);
             font-size: 0.9rem;
             outline: none;
-            transition: border-color var(--transition-speed);
+            transition: all var(--transition-speed) ease;
         }
 
         .form-control:focus, select:focus, textarea:focus {
             border-color: var(--color-open);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+            background: #1a1d29;
         }
 
         .btn {
@@ -255,19 +258,23 @@
             border-radius: 0.5rem;
             font-weight: 600;
             cursor: pointer;
-            transition: filter var(--transition-speed), transform 0.1s;
+            transition: all var(--transition-speed) ease;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.5rem;
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
         }
 
         .btn:hover {
             filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
         }
 
         .btn:active {
-            transform: scale(0.98);
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
         }
 
         .btn-secondary {
@@ -286,24 +293,27 @@
 
         /* Ticket Cards */
         .ticket-card {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--border-color);
             border-radius: 0.75rem;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
             cursor: pointer;
-            transition: background var(--transition-speed), border-color var(--transition-speed);
+            transition: all var(--transition-speed) ease-in-out;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         .ticket-card:hover {
             background: var(--bg-card-hover);
-            border-color: rgba(255, 255, 255, 0.15);
+            border-color: var(--color-open);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
         }
 
         .ticket-card.active {
-            background: rgba(59, 130, 246, 0.06);
+            background: rgba(59, 130, 246, 0.08);
             border-color: var(--color-open);
-            box-shadow: var(--shadow-glow);
+            box-shadow: var(--shadow-glow), 0 0 0 1px var(--color-open);
         }
 
         .ticket-card-header {
@@ -348,15 +358,16 @@
             gap: 1rem;
             font-size: 0.75rem;
             color: var(--text-secondary);
-            margin-top: 0.5rem;
+            margin-top: 0.75rem;
         }
 
         .ticket-desc-preview {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
+            font-size: 0.85rem;
+            color: var(--text-primary);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            margin-top: 0.25rem;
         }
 
         /* Detail View Styles */
@@ -680,14 +691,6 @@
                     <div style="color: var(--text-secondary); font-size: 0.75rem;">{{ auth()->user()->email }}</div>
                 </div>
                 <div style="display: flex; gap: 0.5rem; align-items: center;">
-                    <label for="roleSelect" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);">Aktor (Simulasi):</label>
-                    <select id="roleSelect" class="role-select" onchange="switchRole(this.value)" style="padding: 0.35rem 0.5rem; font-size: 0.8rem; background: var(--bg-main); border: 1px solid var(--border-color); color: white; border-radius: 0.375rem;">
-                        <option value="pekerja">Pekerja Lapangan (Pelapor)</option>
-                        <option value="officer">HSE Officer (Verifikator & Severity)</option>
-                        <option value="supervisor">HSE Supervisor (RCA & Penugasan CAPA)</option>
-                        <option value="pic">Departemen PIC (Pengerjaan CAPA)</option>
-                        <option value="manager">HSE Manager (Verifikasi Akhir & Laporan)</option>
-                    </select>
                     <form action="{{ route('logout') }}" method="POST" style="margin: 0; display: inline;">
                         @csrf
                         <button type="submit" class="btn" style="padding: 0.35rem 0.6rem; font-size: 0.75rem; background: var(--color-critical); border-radius: 0.375rem; border: none; color: white; cursor: pointer;">
@@ -1029,9 +1032,29 @@
                     
                     <!-- Tickets Feed Section -->
                     <div class="ticket-list-sec">
-                        <div class="panel-header" style="border-bottom: 1px solid var(--border-color);">
-                            <span style="font-weight: 700; font-size: 0.95rem;">Daftar Tiket Pelaporan K3</span>
-                            <button class="btn btn-secondary" onclick="loadIncidents()" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.375rem;">Refresh</button>
+                        <div class="panel-header" style="border-bottom: 1px solid var(--border-color); flex-direction: column; align-items: flex-start; gap: 0.75rem;">
+                            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                                <span style="font-weight: 700; font-size: 0.95rem;">Daftar Tiket Pelaporan K3</span>
+                                <button class="btn btn-secondary" onclick="loadIncidents()" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; border-radius: 0.375rem;">Refresh</button>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; width: 100%;">
+                                <select id="filter-status" class="role-select" onchange="renderIncidentsList()" style="width: 50%; font-size: 0.75rem; padding: 0.25rem;">
+                                    <option value="">Semua Status</option>
+                                    <option value="Open">Open</option>
+                                    <option value="In Review">In Review</option>
+                                    <option value="Investigating">Investigating</option>
+                                    <option value="CAPA Progress">CAPA Progress</option>
+                                    <option value="Verifying">Verifying</option>
+                                    <option value="Closed">Closed</option>
+                                </select>
+                                <select id="filter-category" class="role-select" onchange="renderIncidentsList()" style="width: 50%; font-size: 0.75rem; padding: 0.25rem;">
+                                    <option value="">Semua Kategori</option>
+                                    <option value="KTA">KTA</option>
+                                    <option value="TTA">TTA</option>
+                                    <option value="Near Miss">Near Miss</option>
+                                    <option value="Accident">Accident</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="panel-body" id="incidents-list-container" style="padding: 1rem;">
                             <!-- Dynamic Incident Cards will render here -->
@@ -1206,12 +1229,24 @@
             const container = document.getElementById('incidents-list-container');
             container.innerHTML = '';
 
-            if (allIncidents.length === 0) {
+            const statusFilter = document.getElementById('filter-status').value;
+            const categoryFilter = document.getElementById('filter-category').value;
+
+            let filteredIncidents = allIncidents;
+
+            if (statusFilter) {
+                filteredIncidents = filteredIncidents.filter(inc => inc.status === statusFilter);
+            }
+            if (categoryFilter) {
+                filteredIncidents = filteredIncidents.filter(inc => inc.category === categoryFilter);
+            }
+
+            if (filteredIncidents.length === 0) {
                 container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 2rem;">Belum ada laporan insiden K3 masuk.</div>';
                 return;
             }
 
-            allIncidents.forEach(inc => {
+            filteredIncidents.forEach(inc => {
                 const card = document.createElement('div');
                 card.className = `ticket-card ${selectedIncidentId === inc.id ? 'active' : ''}`;
                 card.onclick = () => selectIncident(inc.id);

@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\ContactController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -62,3 +63,5 @@ Route::post('/logout', function (Request $request) {
 
 Route::get('/export/excel', [IncidentController::class, 'exportExcel'])->name('export.excel');
 Route::get('/export/pdf', [IncidentController::class, 'exportPdf'])->name('export.pdf');
+
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
